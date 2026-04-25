@@ -7,18 +7,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
+public class UserListDto {
     private Integer id;
     private String username;
-    private String fullName;
+    private String nombres;
+    private String apellidoPaterno;
+    private String apellidoMaterno;
     private String correoInstitucional;
     private String numeroDocumento;
-    private String role;
     private AreaAsignada areaAsignada;
     private EstadoUsuario estado;
     private String colegiatura;
+    private List<String> roles;
 }

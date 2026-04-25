@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,9 +40,12 @@ public class AuthService {
         UserDto userDto = UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
-                .fullName(user.getFirstname() + " " + user.getLastname())
-                .email("")
+                .fullName(user.getNombres() + " " + user.getApellidoPaterno() + " " + user.getApellidoMaterno())
+                .correoInstitucional(user.getCorreoInstitucional())
                 .role(role)
+                .areaAsignada(user.getAreaAsignada())
+                .estado(user.getEstado())
+                .colegiatura(user.getColegiatura())
                 .build();
 
         return AuthResponse.builder()
@@ -51,23 +55,60 @@ public class AuthService {
                 .user(userDto)
                 .build();
     }
+    public AuthResponse register(RegisterRequest request){
+        return registerInternal(request, false);
+    }
 
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponse registerAdmin(RegisterRequest request){
+        return registerInternal(request, true);
+    }
 
-        if (request.getUsername() == null || request.getRoles().isEmpty()) {
+    private AuthResponse registerInternal(RegisterRequest request,boolean allowAdmin)  {
+
+        if (request.getUsername() == null || request.getUsername().isBlank()) {
             throw new RuntimeException("El nombre del usuario es obligatorio");
         }
-        if(userRepository.findByUsername(request.getUsername()).isPresent()){
+        if (request.getRoles() == null || request.getRoles().isEmpty()){
+            throw new RuntimeException("Debe asignar al menos un rol");
+        }
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("El nombre de usuario " + request.getUsername() + "ya esta en uso.");
         }
-
         Set<Role> roles = new HashSet<>();
-        roles.add(roleRepository.findByName(ERole.FARMACEUTICO).orElseThrow());
+
+        for (String roleName: request.getRoles()){
+            ERole eRole;
+            try {
+                eRole = ERole.valueOf(roleName);
+            }catch (IllegalArgumentException e){
+                throw new RuntimeException("El rol " + roleName + " no es valido. "  );
+            }
+            if (!allowAdmin && eRole == ERole.ADMIN){
+                throw new RuntimeException("No esta permitido registrar usuarios con rol ADMIN desde / register");
+            }
+            Role role = roleRepository.findByName(eRole)
+                    .orElseThrow(() -> new RuntimeException("Rol no encontrado en la Base de datos: " + eRole));
+            roles.add(role);
+        }
         User user = User.builder()
                 .username(request.getUsername())
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .correoInstitucional(request.getCorreoInstitucional())
+                .estado(request.getEstado() != null ? request.getEstado() : EstadoUsuario.ACTIVO)
+                .tipoDocumento(request.getTipoDocumento())
+                .nombres(request.getNombres())
+                .numeroDocumento(request.getNumeroDocumento())
+                .apellidoPaterno(request.getApellidoPaterno())
+                .apellidoMaterno(request.getApellidoMaterno())
+                .fechaNacimiento(request.getFechaNacimiento())
+                .telefono(request.getTelefono())
+                .direccionDomicilio(request.getDireccionDomicilio())
+                .colegiatura(request.getColegiatura())
+                .condicionLaboral(request.getCondicionLaboral())
+                .areaAsignada(request.getAreaAsignada())
+                .fechaIngreso(request.getFechaIngreso() != null
+                    ? request.getFechaIngreso() : LocalDate.now())
+                .firmaDigital(request.getFirmaDigital())
                 .roles(roles)
                 .build();
 
@@ -75,6 +116,9 @@ public class AuthService {
 
         return AuthResponse.builder()
                 .token(jwtService.getToken(user))
+                .tokenType("Bearer")
+                .expiresIn(86400L)
                 .build();
+
     }
 }
