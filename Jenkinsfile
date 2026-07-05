@@ -1,19 +1,28 @@
-﻿node {
-    stage('SCM') {
-        checkout scm
-    }
+pipeline {
+    agent any
 
-    stage('Build') {
-        dir('farmacia-service') {
-            bat 'mvn clean package -DskipTests'
+    stages {
+        stage('SCM') {
+            steps {
+                checkout scm
+            }
         }
-    }
 
-    stage('SonarQube Analysis') {
-        def mvn = tool 'Maven'
-        withSonarQubeEnv('SonarQube') {
-            dir('farmacia-service') {
-                bat "\\bin\\mvn sonar:sonar -Dsonar.projectKey=galenos-farmacia -Dsonar.projectName='GalenosPro Farmacia Service' -DskipTests"
+        stage('Build') {
+            steps {
+                dir('farmacia-service') {
+                    bat 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    dir('farmacia-service') {
+                        bat 'mvn sonar:sonar -Dsonar.projectKey=galenos-farmacia -DskipTests'
+                    }
+                }
             }
         }
     }
