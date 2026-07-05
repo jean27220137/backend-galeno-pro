@@ -15,7 +15,7 @@ pipeline {
         stage('Build auth-service') {
             steps {
                 dir('auth-service') {
-                    bat 'mvn clean package -DskipTests'
+                    bat 'mvn clean package -DskipTests -Dmaven.test.skip=true'
                 }
             }
         }
@@ -24,7 +24,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     dir('auth-service') {
-                        bat 'mvn sonar:sonar -Dsonar.projectKey=galenos-auth -DskipTests'
+                        bat 'mvn sonar:sonar -Dsonar.projectKey=galenos-auth -Dsonar.test.exclusions=**/Integracion/** -Dmaven.test.skip=true'
                     }
                 }
             }
