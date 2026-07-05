@@ -12,7 +12,25 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build auth-service') {
+            steps {
+                dir('auth-service') {
+                    bat 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('SonarQube auth-service') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    dir('auth-service') {
+                        bat 'mvn sonar:sonar -Dsonar.projectKey=galenos-auth -DskipTests'
+                    }
+                }
+            }
+        }
+
+        stage('Build farmacia-service') {
             steps {
                 dir('farmacia-service') {
                     bat 'mvn clean package -DskipTests'
@@ -20,7 +38,7 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('SonarQube farmacia-service') {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     dir('farmacia-service') {
