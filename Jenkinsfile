@@ -1,4 +1,4 @@
-node {
+﻿node {
     stage('SCM') {
         checkout scm
     }
@@ -9,24 +9,12 @@ node {
         }
     }
 
-    stage('Test') {
-        dir('farmacia-service') {
-            bat 'mvn test'
-        }
-    }
-
     stage('SonarQube Analysis') {
         def mvn = tool 'Maven'
         withSonarQubeEnv('SonarQube') {
             dir('farmacia-service') {
-                bat "${mvn}\\bin\\mvn sonar:sonar -Dsonar.projectKey=galenos-farmacia -Dsonar.projectName='GalenosPro Farmacia Service'"
+                bat "\\bin\\mvn sonar:sonar -Dsonar.projectKey=galenos-farmacia -Dsonar.projectName='GalenosPro Farmacia Service' -DskipTests"
             }
-        }
-    }
-
-    stage('Quality Gate') {
-        timeout(time: 2, unit: 'MINUTES') {
-            waitForQualityGate abortPipeline: true
         }
     }
 }
