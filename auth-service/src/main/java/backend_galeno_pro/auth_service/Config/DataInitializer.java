@@ -4,13 +4,15 @@ import backend_galeno_pro.auth_service.Model.ERole;
 import backend_galeno_pro.auth_service.Model.Role;
 import backend_galeno_pro.auth_service.Model.RoleRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 @Slf4j
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
